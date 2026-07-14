@@ -1,4 +1,34 @@
-// Intentionally empty by default.
-// Add Drizzle tables here when the site actually needs a database.
-// See examples/d1/db/schema.ts for an opt-in example.
-export {};
+import { index, integer, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
+
+export const workflowSubmissions = sqliteTable("workflow_submissions", {
+  id: text("id").primaryKey(),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
+  status: text("status", { enum: ["new", "reviewed", "contacted", "archived"] }).notNull().default("new"),
+  processType: text("process_type").notNull(),
+  mainBottleneck: text("main_bottleneck").notNull(),
+  currentProcess: text("current_process").notNull(),
+  frequency: text("frequency").notNull(),
+  peopleInvolved: text("people_involved").notNull(),
+  currentHandling: text("current_handling").notNull(),
+  tools: text("tools").notNull(),
+  biggestConsequence: text("biggest_consequence").notNull(),
+  fullName: text("full_name").notNull(),
+  workEmail: text("work_email").notNull(),
+  companyName: text("company_name").notNull(),
+  companyWebsite: text("company_website"),
+  role: text("role").notNull(),
+  companySize: text("company_size").notNull(),
+  projectStage: text("project_stage").notNull(),
+  supportType: text("support_type").notNull(),
+  consentToContact: integer("consent_to_contact", { mode: "boolean" }).notNull(),
+  sourcePath: text("source_path").notNull(),
+  userAgentSummary: text("user_agent_summary"),
+  turnstileVerified: integer("turnstile_verified", { mode: "boolean" }).notNull(),
+  notificationStatus: text("notification_status").notNull().default("disabled"),
+  idempotencyKey: text("idempotency_key").notNull(),
+}, (table) => [
+  uniqueIndex("workflow_submissions_idempotency_idx").on(table.idempotencyKey),
+  index("workflow_submissions_created_idx").on(table.createdAt),
+  index("workflow_submissions_status_idx").on(table.status),
+]);

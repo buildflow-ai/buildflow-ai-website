@@ -1,33 +1,9 @@
 import assert from "node:assert/strict";
+import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
-
-const developmentPreviewMeta =
-  /<meta(?=[^>]*\bname=["']codex-preview["'])(?=[^>]*\bcontent=["']development["'])[^>]*>/i;
-
-test("renders development preview metadata", async () => {
-  const workerUrl = new URL("../dist/server/index.js", import.meta.url);
-  workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
-  const { default: worker } = await import(workerUrl.href);
-
-  const response = await worker.fetch(
-    new Request("http://localhost/", {
-      headers: { accept: "text/html" },
-    }),
-    {
-      ASSETS: {
-        fetch: async () => new Response("Not found", { status: 404 }),
-      },
-    },
-    {
-      waitUntil() {},
-      passThroughOnException() {},
-    },
-  );
-
-  assert.equal(response.status, 200);
-  assert.match(
-    response.headers.get("content-type") ?? "",
-    /^text\/html\b/i,
-  );
-  assert.match(await response.text(), developmentPreviewMeta);
-});
+const page=readFileSync(new URL("../app/[[...slug]]/page.tsx",import.meta.url),"utf8");
+const components=readFileSync(new URL("../app/components.tsx",import.meta.url),"utf8");
+const required=["solutions","solutions/revenue-operations","solutions/client-operations","solutions/internal-operations","solutions/custom-ai-systems","who-we-help","who-we-help/marketing-agencies","who-we-help/professional-services","who-we-help/recruitment","who-we-help/real-estate","customer-inquiry-orchestration","ai-lead-qualification-crm-automation","finance-email-processing","document-ingestion-processing","approach","about","workflow-review","thank-you","thank-you/manual-review","privacy","terms"];
+test("all required routes have page-specific data",()=>{for(const route of required)assert.ok(page.includes(`'${route}'`)||page.includes(`'${route.replace('work/','')}'`),route)});
+test("production form and accessible evidence are wired",()=>{assert.match(components,/fetch\('\/api\/workflow-review'/);assert.match(components,/showModal\(\)/);assert.match(components,/TURNSTILE_SITE_KEY/);assert.doesNotMatch(page+components,/preview cannot send|backend is not connected/i)});
+test("verified assets and contacts",()=>{for(const asset of ["hanan-naseer-founder.png","customer-inquiry-orchestration.png","ai-lead-qualification-crm.png","finance-email-processing.png","document-ingestion-processing.png"])assert.ok(existsSync(new URL(`../public/assets/${asset}`,import.meta.url)));assert.match(page+components,/hanannaseer778@gmail\.com/);assert.match(page+components,/linkedin\.com\/in\/hnautomation/);assert.doesNotMatch(page+components,/whatsapp|wa\.me/i);assert.match(page,/document-ingestion-processing\.png/)});

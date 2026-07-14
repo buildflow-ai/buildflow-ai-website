@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "buildflow-ai",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-07-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "observability": { "enabled": true },
+  "assets": { "directory": "dist/client", "binding": "ASSETS", "not_found_handling": "single-page-application" },
+  "d1_databases": [{ "binding": "DB", "database_name": "buildflow-ai-leads", "database_id": "REPLACE_AFTER_D1_CREATION", "migrations_dir": "drizzle" }],
+  "vars": {
+    "PUBLIC_SITE_URL": "https://buildflow-ai.REPLACE-SUBDOMAIN.workers.dev",
+    "NEXT_PUBLIC_TURNSTILE_SITE_KEY": "REPLACE_AFTER_TURNSTILE_CREATION",
+    "CONTACT_EMAIL": "hanannaseer778@gmail.com",
+    "LINKEDIN_URL": "https://www.linkedin.com/in/hnautomation",
+    "EMAIL_PROVIDER": "none",
+    "ALLOWED_ORIGINS": "https://buildflow-ai.REPLACE-SUBDOMAIN.workers.dev"
+  }
+}

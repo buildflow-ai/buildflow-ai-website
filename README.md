@@ -1,24 +1,36 @@
 # BuildFlow AI website
 
-Complete multi-page Vinext/Next website for BuildFlow AI using the supplied founder portrait and four real workflow evidence images.
+Production-ready Vinext/Next application for BuildFlow AI, founded by Hanan Naseer. It preserves the approved Signal & Flow visual direction and uses the supplied founder portrait and four real workflow evidence images.
 
-## Local preview
+## Local development
 
-Use Node.js 22.13 or newer, run `npm ci`, then `npm run dev`.
+Use Node.js 22.13 or newer.
 
-## Build
+```bash
+npm ci
+npm run dev
+```
 
-Run `npm run build`. The project is structured for Sites hosting and can be adapted for GitHub-based deployment. A static GitHub Pages export requires confirming framework route handling first.
+Copy `.env.example` to a local ignored environment file. Cloudflare's published Turnstile test keys can be used only for local testing.
 
-## Custom domain preparation
+## Quality checks
 
-No public domain is hardcoded. Supply the final domain, then add canonical URLs, update robots/sitemap, and configure DNS on the chosen host.
+```bash
+npm run lint
+npm run typecheck
+npm test
+npm run build
+npm run validate:artifact
+```
 
-## External requirements
+## Backend
 
-- Connect the workflow-review form to a secure submission backend.
-- Configure notification/email handling and data retention.
-- Connect a real scheduling provider before showing a calendar.
-- Obtain legal review for Privacy and Terms.
-- Supply and configure the final domain.
-- Add production analytics only with an approved privacy approach.
+`POST /api/workflow-review` accepts JSON, applies authoritative validation, requires contact consent, checks a honeypot and Cloudflare Turnstile, rate limits without storing raw IP addresses, and stores accepted submissions in D1. Email is disabled until a verified sending domain is available; database storage does not depend on email delivery.
+
+Generate and apply database migrations with the `db:*` scripts in `package.json`. Submission administration is intentionally CLI-only so no records or admin secret are exposed through a public route.
+
+## Deployment
+
+Production deploys from GitHub Actions to Cloudflare Workers. See [DEPLOYMENT.md](DEPLOYMENT.md) for Cloudflare permissions, D1 and Turnstile setup, GitHub secrets, secure exports, Resend enablement, troubleshooting, security notes, and the future custom-domain checklist.
+
+Never commit Worker secrets, API tokens, account credentials, local databases, build output, or `.env` files.
