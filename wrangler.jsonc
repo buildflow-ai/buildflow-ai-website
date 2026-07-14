@@ -7,7 +7,7 @@
   "workers_dev": true,
   "observability": { "enabled": true },
   "assets": { "directory": "dist/client", "binding": "ASSETS", "not_found_handling": "single-page-application" },
-  "d1_databases": [{ "binding": "DB", "database_name": "buildflow-ai-leads", "database_id": "REPLACE_AFTER_D1_CREATION", "migrations_dir": "drizzle" }],
+  "d1_databases": [{ "binding": "DB", "database_name": "buildflow-ai-leads", "database_id": "1618938a-b531-4a05-9894-8d5bf2fabf47", "migrations_dir": "drizzle" }],
   "vars": {
     "PUBLIC_SITE_URL": "https://buildflow-ai.REPLACE-SUBDOMAIN.workers.dev",
     "NEXT_PUBLIC_TURNSTILE_SITE_KEY": "REPLACE_AFTER_TURNSTILE_CREATION",
