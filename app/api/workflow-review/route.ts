@@ -37,7 +37,6 @@ export async function POST(request: Request) {
     const abuseKey = await digest(`${salt}:${ip}`);
     const now = Date.now(); const recent = (attempts.get(abuseKey) || []).filter(t => now - t < 600_000);
     if (recent.length >= 5) return json({ ok:false, code:"TOO_MANY_REQUESTS" }, 429);
-    recent.push(now); attempts.set(abuseKey, recent);
     const token = typeof input.turnstileToken === "string" ? input.turnstileToken : "";
     if (!token || !runtime.TURNSTILE_SECRET_KEY) return json({ ok:false, code:"TURNSTILE_FAILED" }, 400);
     const verifyBody = new URLSearchParams({ secret: runtime.TURNSTILE_SECRET_KEY, response: token });
@@ -45,6 +44,7 @@ export async function POST(request: Request) {
     const verify = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method:"POST", body:verifyBody });
     const verdict = await verify.json() as { success?: boolean };
     if (!verdict.success) return json({ ok:false, code:"TURNSTILE_FAILED" }, 400);
+    recent.push(now); attempts.set(abuseKey, recent);
     const result = normalizeAndValidate(input);
     if (!result.valid) return json({ ok:false, code:"VALIDATION_ERROR", fieldErrors:result.fieldErrors }, 400);
     const id = crypto.randomUUID(); const timestamp = new Date().toISOString();
