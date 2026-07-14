@@ -1,7 +1,7 @@
 import { env } from "cloudflare:workers";
 import { normalizeAndValidate } from "./validation";
 
-type RuntimeEnv = { DB: D1Database; TURNSTILE_SECRET_KEY?: string; RATE_LIMIT_SALT?: string; EMAIL_PROVIDER?: string; RESEND_API_KEY?: string; CONTACT_EMAIL?: string; ALLOWED_ORIGINS?: string };
+type RuntimeEnv = { DB: D1Database; RATE_LIMIT_SALT?: string; EMAIL_PROVIDER?: string; RESEND_API_KEY?: string; CONTACT_EMAIL?: string; ALLOWED_ORIGINS?: string };
 const attempts = new Map<string, number[]>();
 const json = (body: unknown, status = 200) => Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
 const fields = ["processType","mainBottleneck","currentProcess","frequency","peopleInvolved","currentHandling","tools","biggestConsequence","fullName","workEmail","companyName","companyWebsite","role","companySize","projectStage","supportType"];
@@ -37,13 +37,6 @@ export async function POST(request: Request) {
     const abuseKey = await digest(`${salt}:${ip}`);
     const now = Date.now(); const recent = (attempts.get(abuseKey) || []).filter(t => now - t < 600_000);
     if (recent.length >= 5) return json({ ok:false, code:"TOO_MANY_REQUESTS" }, 429);
-    const token = typeof input.turnstileToken === "string" ? input.turnstileToken : "";
-    if (!token || !runtime.TURNSTILE_SECRET_KEY) return json({ ok:false, code:"TURNSTILE_FAILED" }, 400);
-    const verifyBody = new URLSearchParams({ secret: runtime.TURNSTILE_SECRET_KEY, response: token });
-    if (ip !== "local") verifyBody.set("remoteip", ip);
-    const verify = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method:"POST", body:verifyBody });
-    const verdict = await verify.json() as { success?: boolean };
-    if (!verdict.success) return json({ ok:false, code:"TURNSTILE_FAILED" }, 400);
     recent.push(now); attempts.set(abuseKey, recent);
     const result = normalizeAndValidate(input);
     if (!result.valid) return json({ ok:false, code:"VALIDATION_ERROR", fieldErrors:result.fieldErrors }, 400);
@@ -52,7 +45,7 @@ export async function POST(request: Request) {
     const values = result.values;
     const placeholders = fields.map(()=>"?").join(",");
     try {
-      await runtime.DB.prepare(`INSERT INTO workflow_submissions (id,created_at,updated_at,status,${fields.map(x=>x.replace(/[A-Z]/g,m=>`_${m.toLowerCase()}`)).join(",")},consent_to_contact,source_path,user_agent_summary,turnstile_verified,notification_status,idempotency_key) VALUES (?,?,?,'new',${placeholders},?,?,?,?,?,'pending',?)`).bind(id,timestamp,timestamp,...fields.map(k=>values[k] ?? null),1,String(input.sourcePath||"/workflow-review").slice(0,200),String(request.headers.get("user-agent")||"").slice(0,200),1,idempotencyKey).run();
+      await runtime.DB.prepare(`INSERT INTO workflow_submissions (id,created_at,updated_at,status,${fields.map(x=>x.replace(/[A-Z]/g,m=>`_${m.toLowerCase()}`)).join(",")},consent_to_contact,source_path,user_agent_summary,turnstile_verified,notification_status,idempotency_key) VALUES (?,?,?,'new',${placeholders},?,?,?,?,?,'pending',?)`).bind(id,timestamp,timestamp,...fields.map(k=>values[k] ?? null),1,String(input.sourcePath||"/workflow-review").slice(0,200),String(request.headers.get("user-agent")||"").slice(0,200),0,idempotencyKey).run();
     } catch (error) {
       if (String(error).includes("UNIQUE")) return json({ ok:false, code:"DUPLICATE_SUBMISSION" }, 409);
       return json({ ok:false, code:"SERVICE_UNAVAILABLE" }, 503);

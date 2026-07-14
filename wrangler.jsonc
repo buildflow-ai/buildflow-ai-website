@@ -9,7 +9,6 @@
   "d1_databases": [{ "binding": "DB", "database_name": "buildflow-ai-leads", "database_id": "066169a8-4063-4350-8860-2f6ad4c41a24", "migrations_dir": "drizzle" }],
   "vars": {
     "PUBLIC_SITE_URL": "https://buildflow-ai.buildflow-ai-hanan-777.workers.dev",
-    "NEXT_PUBLIC_TURNSTILE_SITE_KEY": "0x4AAAAAAD2BV8i7ltF-ZKP_",
     "CONTACT_EMAIL": "hanannaseer778@gmail.com",
     "LINKEDIN_URL": "https://www.linkedin.com/in/hnautomation",
     "EMAIL_PROVIDER": "none",
