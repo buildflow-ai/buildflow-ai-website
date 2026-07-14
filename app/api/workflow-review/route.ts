@@ -45,7 +45,7 @@ export async function POST(request: Request) {
     const values = result.values;
     const placeholders = fields.map(()=>"?").join(",");
     try {
-      await runtime.DB.prepare(`INSERT INTO workflow_submissions (id,created_at,updated_at,status,${fields.map(x=>x.replace(/[A-Z]/g,m=>`_${m.toLowerCase()}`)).join(",")},consent_to_contact,source_path,user_agent_summary,turnstile_verified,notification_status,idempotency_key) VALUES (?,?,?,'new',${placeholders},?,?,?,?,?,'pending',?)`).bind(id,timestamp,timestamp,...fields.map(k=>values[k] ?? null),1,String(input.sourcePath||"/workflow-review").slice(0,200),String(request.headers.get("user-agent")||"").slice(0,200),0,idempotencyKey).run();
+      await runtime.DB.prepare(`INSERT INTO workflow_submissions (id,created_at,updated_at,status,${fields.map(x=>x.replace(/[A-Z]/g,m=>`_${m.toLowerCase()}`)).join(",")},consent_to_contact,source_path,user_agent_summary,turnstile_verified,notification_status,idempotency_key) VALUES (?,?,?,'new',${placeholders},?,?,?,?,'pending',?)`).bind(id,timestamp,timestamp,...fields.map(k=>values[k] ?? null),1,String(input.sourcePath||"/workflow-review").slice(0,200),String(request.headers.get("user-agent")||"").slice(0,200),0,idempotencyKey).run();
     } catch (error) {
       if (String(error).includes("UNIQUE")) return json({ ok:false, code:"DUPLICATE_SUBMISSION" }, 409);
       return json({ ok:false, code:"SERVICE_UNAVAILABLE" }, 503);
